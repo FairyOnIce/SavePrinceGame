@@ -1,1 +1,6 @@
 *.pyc
+*temp
+*Untitle
+/result
+/.ipynb_checkpoints/
+/.idea/
