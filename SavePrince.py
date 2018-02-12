@@ -1,7 +1,10 @@
-
+# To run the game, on terminal
+#
+# python2 SavePrince.py
 import numpy as np
-
-
+import pygame
+from color import *
+import time
 
 class SavePrince(object):
     def __init__(self,
@@ -367,9 +370,6 @@ class GameInterface(object):
 
 
 if __name__ == '__main__':
-    import pygame
-    from color import *
-    import time
     pygame.init()
 
     ## define environment/game
