@@ -278,9 +278,50 @@ class SavePrince(object):
 
 
 class GameInterface(object):
-    def __init__(self):
+
+    def __init__(self,pygame,npix_x, npix_y, FPT,env):
         ## frame per time (sec)
-        self.FPT = 20
+        self.FPT = FPT
+        self.wait_sec_after_get_prince = 1
+        self.npix_x, self.npix_y = npix_x, npix_y
+        self.pygame = pygame
+        self.pygame.display.set_caption("princess's game")
+        self.define_plot_image(env)
+        self.gameDisplay = self.pygame.display.set_mode(
+            (self.npix_x, self.npix_y),self.pygame.RESIZABLE)
+        self.setup()
+
+    def setup(self):
+
+        self.start = time.time()
+        self.clock = self.pygame.time.Clock()
+
+    def action_to_string(self,action):
+        actions = ["Left", "Right", "Down", "Up", "Stop"]
+
+        if action is None:
+            return("   ")
+        elif isinstance(action,list):
+            action = action[0]
+
+        return(actions[action])
+
+    def define_plot_image(self,env):
+        '''
+        :param drawing:
+        :return:
+        '''
+
+        self.img = pygame.image.load('./pic/princess.png')
+        self.img_prince = pygame.image.load('./pic/prince.png')
+        self.img_prince_happy = pygame.image.load('./pic/prince_happy.png')
+        self.pygame.display.set_icon(self.img)
+        self.princess_size = env.princess_size
+        self.prince_size = env.goal_size
+        self.plt_princess = lambda xy: self.gameDisplay.blit(self.img, xy)
+        self.plt_prince   = lambda xy: self.gameDisplay.blit(self.img_prince, xy)
+        ## goal_xy is top left coner
+        self.plt_prince_happy = lambda xy: self.gameDisplay.blit(self.img_prince_happy, xy)
 
     def check_keyboard_actions(self,pygame):
         for event in pygame.event.get():
@@ -306,7 +347,7 @@ class GameInterface(object):
 
         textSurf, textRect = self._text_objects(msg, color, font)
         textRect.center = (x, y)
-        gameDisplay.blit(textSurf, textRect)
+        self.gameDisplay.blit(textSurf, textRect)
 
     def _text_objects(self,text, color, font):
         font = pygame.font.SysFont(None, font)
@@ -316,7 +357,7 @@ class GameInterface(object):
     def intro(self,npix_x,npix_y):
         Intro = True
         while Intro:
-            gameDisplay.fill(black)
+            self.gameDisplay.fill(black)
             self.message_to_screen("Save your prince", green, 30,
                               x=npix_x / 2, y=npix_y * 1 / 4)
             self.message_to_screen("before the snake monster gets you!", green, 30,
@@ -327,15 +368,21 @@ class GameInterface(object):
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     Intro = False
+    def report_status(self,myscore, action, reward, font=10):
+        font = self.npix_x/15
+        if font >= 1:
+            smallfont = self.pygame.font.SysFont("comicsansms", font)
 
-    def report_status(self,myscore, start, font=30):
-        smallfont = pygame.font.SysFont("comicsansms", font)
+            now = time.time()
+            strtime = self._get_time_diff(self.start, now)
+            mystring = "Prince:" + str(myscore) + strtime + \
+                       " Reward:{:4.3f}".format(reward) +\
+                       " Action:{:5}".format(self.action_to_string(action))
+            text = smallfont.render(mystring,True, white)
 
-        now = time.time()
-        strtime = self._get_time_diff(start, now)
-        text = smallfont.render("My prince: " + str(myscore) + strtime,
-                                True, white)
-        gameDisplay.blit(text, [15, 15]) ## topleft corner
+            loc=30.0/(self.npix_x)
+            self.gameDisplay.blit(text, [loc, loc]) ## topleft corner
+
 
     def _get_time_diff(self,start, now):
         diff = now - start
@@ -344,29 +391,34 @@ class GameInterface(object):
 
         return (timestr)
 
-
-    def display_screen(self,Nprinces, start,
+    def display_screen(self,
                        state,
+                       Nprincess,
                        goal_xy,
-                       monster_size):
+                       monster_size,
+                       action,reward):
         princess_xy = state["princess"]
         monster_x = state["monster"][0]
         monster_y= state["monster"][1]
 
-        gameDisplay.fill(black)
-        gameDisplay.blit(img,princess_xy)
-        gameDisplay.blit(img_prince, goal_xy)
-
+        self.gameDisplay.fill(black)
+        self.plt_prince(goal_xy)
+        self.plt_princess(princess_xy)
+        #gameDisplay.blit(self.img,princess_xy) ## princess_xy is top left coner
+        #gameDisplay.blit(self.img_prince, goal_xy)  ## goal_xy is top left coner
 
         for lx,ly in zip(monster_x,monster_y):
-            pygame.draw.rect(gameDisplay,purple,
-                             (lx,ly,
-                              monster_size,
-                              monster_size))
+            self.pygame.draw.rect(self.gameDisplay,purple,
+                             (lx,ly, ## top left corner
+                              monster_size, ## width
+                              monster_size)) ## height
 
-        self.report_status(Nprinces, start, font=30)
-        pygame.display.update()
-        clock.tick(self.FPT)  ## 20 frames / sec
+
+        self.report_status(Nprincess, action, reward)
+        self.pygame.display.update()
+
+        self.clock.tick(self.FPT)  ## 20 frames / sec
+
 
 
 if __name__ == '__main__':
@@ -375,37 +427,38 @@ if __name__ == '__main__':
     ## define environment/game
     env = SavePrince()
 
-    img = pygame.image.load('./pic/princess.png')
-    img_prince = pygame.image.load('./pic/prince.png')
-    img_prince_happy = pygame.image.load('./pic/prince_happy.png')
+
     pygame.display.set_caption("princess's game")
-    pygame.display.set_icon(img)
+
 
     wait_sec_after_get_prince = 1
     Nprinces = 0
-    gameDisplay = pygame.display.set_mode((env.npix_x, env.npix_y))
     start = time.time()
     clock = pygame.time.Clock()
-    interface = GameInterface()
+    interface = GameInterface(pygame,
+                                      env.npix_x,
+                                      env.npix_y,
+                                      env=env,
+                                      FPT=20)
     interface.intro(env.npix_x, env.npix_y)
-
+    clock = interface.setup()
 
     while not env.game_over:
         action = interface.check_keyboard_actions(pygame)
         reward, game_over = env.act(action)
 
-        interface.display_screen(Nprinces,
-                                 start,
-                                 env.state,
+        interface.display_screen(env.state,
+                                 Nprinces,
                                  env.state_static,
-                                 env.monster_size)
+                                 env.monster_size,
+                                 action, reward)
 
         #image_array = pygame.surfarray.array3d(gameDisplay)
 
         if reward == 1:
             interface.message_to_screen("FOUND HIM <3", magenta, 80,
                                         env.npix_x/2,env.npix_y/2)
-            gameDisplay.blit(img_prince_happy, env.state_static)
+            interface.plt_prince_happy(env.state_static)
             pygame.display.update()
             pygame.time.wait(wait_sec_after_get_prince * 1000)
             Nprinces += 1
