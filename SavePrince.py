@@ -358,7 +358,7 @@ class GameInterface(object):
         pygame = self.pygame
         Intro = True
         while Intro:
-            font_size = int(self.npix_x*0.1)
+            font_size = int(self.npix_x*0.08)
             self.gameDisplay.fill(black)
             self.message_to_screen("Save your prince", green, font_size,
                               x=self.npix_x / 2, y=self.npix_y * 1 / 4)
@@ -443,7 +443,7 @@ if __name__ == '__main__':
                                       env.npix_y,
                                       env=env,
                                       FPT=20)
-    interface.intro(env.npix_x, env.npix_y)
+    interface.intro()
     clock = interface.setup()
 
     while not env.game_over:
