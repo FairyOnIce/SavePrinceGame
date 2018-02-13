@@ -119,22 +119,6 @@ class GameInterfaceRenforce(GameInterface):
 
 
 
-    def intro(self):
-        pygame = self.pygame
-        Intro = True
-        while Intro:
-            font_size = int(self.npix_x*0.1)
-            self.gameDisplay.fill(black)
-            self.message_to_screen("Save your prince", green, font_size,
-                              x=self.npix_x / 2, y=self.npix_y * 1 / 4)
-            self.message_to_screen("before the snake monster gets you!", green, font_size,
-                              x=self.npix_x / 2, y=self.npix_y * 2 / 4)
-            self.message_to_screen("Press any key to get started.", green, font_size,
-                              x=self.npix_x / 2, y=self.npix_y * 3 / 4)
-            pygame.display.update()
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    Intro = False
 
 
 
