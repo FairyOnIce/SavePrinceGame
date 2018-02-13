@@ -3,7 +3,6 @@
 import numpy as np
 import pygame
 from color import *
-import time
 import json
 import matplotlib.pyplot as plt
 from SavePrince import SavePrince, GameInterface
@@ -115,18 +114,6 @@ class GameInterfaceRenforce(GameInterface):
                           (xy[0], xy[1], self.prince_size,   self.prince_size))
         self.plt_prince_happy = lambda xy: pygame.draw.rect(self.gameDisplay, pcince_skin,
                           (xy[0], xy[1], self.prince_size,   self.prince_size))
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
